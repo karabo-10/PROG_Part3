@@ -745,6 +745,189 @@ private void InitialiseQuizQuestions()
             return sb.ToString();
         }
  
+        
+        //UI HELPERS 
+        
+        private bool IsValidName(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return false;
+            foreach (char c in name)
+                if (!char.IsLetter(c)) return false;
+            return true;
+        }
+ 
+        private void TypeResponse(string message)
+        {
+            if (message == null) return; // quiz handles its own output
+ 
+            isTyping         = true;
+            btnSend.Enabled  = false;
+            txtInput.Enabled = false;
+ 
+            // Log the response topic if detectable
+            LogActivity($"Bot responded to user input.");
+ 
+            var thread = new Thread(() =>
+            {
+                rtbChat.Invoke((Action)(() =>
+                {
+                    int s = rtbChat.TextLength;
+                    rtbChat.AppendText("[CyberBot]: ");
+                    rtbChat.Select(s, 12);
+                    rtbChat.SelectionColor = Color.FromArgb(0, 200, 150);
+                    rtbChat.SelectionFont  = new Font("Consolas", 10F, FontStyle.Bold);
+                    rtbChat.SelectionLength = 0;
+                }));
+ 
+                foreach (char c in message)
+                {
+                    char ch = c;
+                    rtbChat.Invoke((Action)(() =>
+                    {
+                        int pos = rtbChat.TextLength;
+                        rtbChat.AppendText(ch.ToString());
+                        rtbChat.Select(pos, 1);
+                        rtbChat.SelectionColor = Color.FromArgb(200, 220, 255);
+                        rtbChat.SelectionFont  = new Font("Consolas", 10F);
+                        rtbChat.SelectionStart  = rtbChat.TextLength;
+                        rtbChat.SelectionLength = 0;
+                    }));
+ 
+                    Thread.Sleep(c == '.' || c == '!' || c == '?' ? 150 : 20);
+                }
+ 
+                rtbChat.Invoke((Action)(() =>
+                {
+                    rtbChat.AppendText("\n\n");
+                    rtbChat.ScrollToCaret();
+                    isTyping         = false;
+                    btnSend.Enabled  = true;
+                    txtInput.Enabled = true;
+                    txtInput.Focus();
+                }));
+            });
+ 
+            thread.IsBackground = true;
+            thread.Start();
+        }
+ 
+        private void ShowAsciiLogo()
+        {
+            string logo = @"
+>>====================================================================<<
+||              _                                        _ _          ||
+||    ___ _   _| |__   ___ _ __ ___  ___  ___ _   _ _ __(_) |_ _   _  ||
+||   / __| | | | '_ \ / _ \ '__/ __|/ _ \/ __| | | | '__| | __| | | | ||
+||  | (__| |_| | |_) |  __/ |  \__ \  __/ (__| |_| | |  | | |_| |_| | ||
+||   \___|\__, |_.__/ \___|_|  |___/\___|\___|\__,_|_|  |_|\__|\__, | ||
+||        |___/                                       _        |___/  ||
+||  __ ___      ____ _ _ __ ___ _ __   ___  ___ ___  | |__   ___ | |_ ||
+|| / _` \ \ /\ / / _` | '__/ _ \ '_ \ / _ \/ __/ __| | '_ \ / _ \| __|||
+||| (_| |\ V  V / (_| | | |  __/ | | |  __/\__ \__ \ | |_) | (_) | |_ ||
+|| \__,_| \_/\_/ \__,_|_|  \___|_| |_|\___||___/___/ |_.__/ \___/ \__|||
+>>====================================================================<<
+                        /-----\
+                       | 0   0 |
+                       |   ^   |
+                       |  ---  |
+                       |_______|
+                        /| | |\
+                       /_|_|_|_\
+                    Stay Cyber Safe
+";
+            int start = rtbChat.TextLength;
+            rtbChat.AppendText(logo + "\n");
+            rtbChat.Select(start, logo.Length);
+            rtbChat.SelectionColor = Color.FromArgb(0, 210, 210);
+            rtbChat.SelectionFont  = new Font("Consolas", 9F, FontStyle.Bold);
+            rtbChat.ScrollToCaret();
+        }
+ 
+        private void AppendSection(string title)
+        {
+            int start = rtbChat.TextLength;
+            string text = $"\n=== {title} ===\n";
+            rtbChat.AppendText(text);
+            rtbChat.Select(start, text.Length);
+            rtbChat.SelectionColor = Color.FromArgb(220, 100, 255);
+            rtbChat.SelectionFont  = new Font("Consolas", 11F, FontStyle.Bold);
+        }
+ 
+        private void AppendDivider()
+        {
+            int start = rtbChat.TextLength;
+            string line = "\n" + new string('=', 70) + "\n";
+            rtbChat.AppendText(line);
+            rtbChat.Select(start, line.Length);
+            rtbChat.SelectionColor = Color.FromArgb(80, 80, 80);
+        }
+ 
+        private void AppendBot(string message)
+        {
+            int s = rtbChat.TextLength;
+            rtbChat.AppendText("[CyberBot]: ");
+            rtbChat.Select(s, 12);
+            rtbChat.SelectionColor = Color.FromArgb(0, 200, 150);
+            rtbChat.SelectionFont  = new Font("Consolas", 10F, FontStyle.Bold);
+ 
+            int ms = rtbChat.TextLength;
+            rtbChat.AppendText(message + "\n\n");
+            rtbChat.Select(ms, message.Length);
+            rtbChat.SelectionColor = Color.FromArgb(200, 220, 255);
+            rtbChat.SelectionFont  = new Font("Consolas", 10F);
+            rtbChat.ScrollToCaret();
+        }
+ 
+        private void AppendUser(string message)
+        {
+            string label = string.IsNullOrEmpty(userName) ? "[You]: " : $"[{userName}]: ";
+            int s = rtbChat.TextLength;
+            rtbChat.AppendText(label);
+            rtbChat.Select(s, label.Length);
+            rtbChat.SelectionColor = Color.FromArgb(100, 200, 100);
+            rtbChat.SelectionFont  = new Font("Consolas", 10F, FontStyle.Bold);
+ 
+            int ms = rtbChat.TextLength;
+            rtbChat.AppendText(message + "\n");
+            rtbChat.Select(ms, message.Length);
+            rtbChat.SelectionColor = Color.White;
+            rtbChat.SelectionFont  = new Font("Consolas", 10F);
+            rtbChat.ScrollToCaret();
+        }
+ 
+        private void AppendError(string message)
+        {
+            int s = rtbChat.TextLength;
+            rtbChat.AppendText(message + "\n\n");
+            rtbChat.Select(s, message.Length);
+            rtbChat.SelectionColor = Color.FromArgb(255, 80, 80);
+            rtbChat.SelectionFont  = new Font("Consolas", 10F);
+        }
+ 
+        private void AppendColoured(string message, Color color)
+        {
+            int s = rtbChat.TextLength;
+            rtbChat.AppendText(message + "\n\n");
+            rtbChat.Select(s, message.Length);
+            rtbChat.SelectionColor = color;
+            rtbChat.SelectionFont  = new Font("Consolas", 10F, FontStyle.Bold);
+        }
+ 
+        private void PlayVoiceGreeting()
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                try { new SoundPlayer("greeting.wav").Play(); } catch { }
+            }
+        }
+ 
+        private void btnClear_Click(object sender, EventArgs e)
+        {
+            rtbChat.Clear();
+            ShowAsciiLogo();
+            AppendBot($"Chat cleared! How can I help you, {userName}?");
+        }
+    }
+}
 
-}
-}
+
