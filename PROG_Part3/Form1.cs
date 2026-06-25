@@ -722,6 +722,29 @@ private void InitialiseQuizQuestions()
             }
             catch (Exception ex) { return $"DB Error (update): {ex.Message}"; }
         }
+
+        //Activity log
+        private void LogActivity(string description)
+        {
+            string entry = $"[{DateTime.Now:HH:mm:ss}] {description}";
+            activityLog.Add(entry);
+            // Keep only last 10
+            if (activityLog.Count > 10)
+                activityLog.RemoveAt(0);
+        }
+        private string BuildActivityLogResponse()
+        {
+            if (activityLog.Count == 0)
+                return $"No actions logged yet, {userName}. Interact with the bot to generate activity!";
  
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine($"Recent activity log for {userName}:");
+            int num = 1;
+            foreach (var entry in activityLog)
+                sb.AppendLine($"{num++}. {entry}");
+            return sb.ToString();
+        }
+ 
+
 }
 }
