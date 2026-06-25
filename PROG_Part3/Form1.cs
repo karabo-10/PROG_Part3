@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Media;
 using System.Threading;
 using System.Windows.Forms;
-using MySql.Data.MySqlClient; 
+using MySql.Data.MySqlClient;
 
 namespace PROG_Part3
 {
@@ -27,11 +27,20 @@ namespace PROG_Part3
     }
     public partial class Form1 : Form
     {
+        //InitializeComponent();
+        // MY SQL connection string
+        private const string ConnStr =
+        "Server=localhost;Database=cybertask_db;Uid=root;Pwd=;";
+
+        //Memory and state
+        private string username = "";
+        private string favouriteTopic = "";
+        private string lastTopic = "";
+        private bool waitingForName = true;
+        private bool isTyping = false;
         public Form1()
         {
-            //InitializeComponent();
-            // MY SQL connection string
-            private const string ConnStr =
-            "Server=localhost;Database=cybertask_db;Uid=root;Pwd=;";
+
+        }
     }
 }
