@@ -110,6 +110,38 @@ namespace PROG_Part3
                 "Never open email attachments from unknown senders."
             }
             };
+
+        //NLP synonym map(maps alternative words to a standard keyword)
+        private Dictionary<string, string> nlpSynonms = 
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["pass"] = "password",
+                ["passwords"] = "password",
+                ["credentials"] = "password",
+                ["login"] = "password",
+                ["phish"] = "phishing",
+                ["spam"] = "phishing",
+                ["fake email"] = "phishing",
+                ["web"] = "browsing",
+                ["internet"] = "browsing",
+                ["surfing"] = "browsing",
+                ["private"] = "privacy",
+                ["data"] = "privacy",
+                ["personal info"] = "privacy",
+                ["virus"] = "virus",
+                ["viruses"] = "virus",
+                ["hack"] = "malware",
+                ["hacker"] = "malware",
+                ["ransomware"] = "malware",
+                ["spyware"] = "malware",
+                ["fraud"] = "scam",
+                ["trick"] = "scam",
+                ["network"] = "wifi",
+                ["hotspot"] = "wifi",
+                ["public wifi"] = "wifi"
+            };
+           
+
         public Form1()
         {
 
