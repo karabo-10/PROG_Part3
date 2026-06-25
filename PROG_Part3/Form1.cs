@@ -141,8 +141,22 @@ namespace PROG_Part3
                 ["public wifi"] = "wifi"
             };
            
+        //Sentiment map
+        private Dictionary<string, string> sentimentPrefixes =
+            new Dictionary<string, string(StringComparer.OrdinalIgnoreCase)
+        {
+            ["worried"]     = "It's understandable to feel that way. Here are some tips: ",
+            ["scared"]      = "Don't worry — learning about this is already the right step. ",
+            ["frustrated"]  = "I hear you — cybersecurity can feel overwhelming. Let's break it down: ",
+            ["confused"]    = "No problem! Let me explain more clearly. ",
+            ["curious"]     = "Great curiosity! Staying informed is the best defence. ",
+            ["anxious"]     = "Take a deep breath — awareness is the first step to staying safe online. ",
+            ["angry"]       = "Let's channel that energy into staying better protected. ",
+            ["overwhelmed"] = "Let's take it one step at a time. Here's one thing you can do: "
+        };
 
-        public Form1()
+
+    public Form1()
         {
 
         }
