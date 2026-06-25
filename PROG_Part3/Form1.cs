@@ -27,7 +27,7 @@ namespace PROG_Part3
     }
     public partial class Form1 : Form
     {
-        //InitializeComponent();
+        
         // MY SQL connection string
         private const string ConnStr =
         "Server=localhost;Database=cybertask_db;Uid=root;Pwd=;";
@@ -162,10 +162,26 @@ namespace PROG_Part3
             "elaborate", "continue", "more please", "go on"
         };
 
-
+        private Random rng = new Random();
     public Form1()
         {
-
+            InitializeComponent();
+            InitialiseQuizQuestions();
+            EnsureDatabaseExists();
+            this.Load += Form1_Load;
+        }
+        //Form load
+        private void Form1_Load(object? sender, EventArgs e)
+        {
+            PlayVoiceGreeting();
+            ShowAsciiLogo();
+            AppendDivider();
+            AppendSection("Welcome");
+            AppendBot("Hello! I am your CyberSecurity Awareness Bot. 🛡");
+            AppendBot("Ask me about password security, phishing, or safe browsing.");
+            AppendBot("Type 'quiz' to start the mini-game, 'tasks' to manage tasks, or 'activity log' to view recent actions.");
+            AppendDivider();
+            AppendBot("Please enter your name to get started:");
         }
     }
 }
