@@ -155,6 +155,13 @@ namespace PROG_Part3
             ["overwhelmed"] = "Let's take it one step at a time. Here's one thing you can do: "
         };
 
+        //Follow up phrases
+        private List<string> followUpPhrases = new List<string>
+        {
+            "tell me more", "another tip", "give me more", "explain more", "more info",
+            "elaborate", "continue", "more please", "go on"
+        };
+
 
     public Form1()
         {
