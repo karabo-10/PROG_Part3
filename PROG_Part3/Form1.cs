@@ -38,6 +38,13 @@ namespace PROG_Part3
         private string lastTopic = "";
         private bool waitingForName = true;
         private bool isTyping = false;
+
+        //Quiz state
+        private bool inQuiz = false;
+        private int quizIndex = 0;
+        private int quizScore = 0;
+        private bool awaitingQuizAnswer = false;
+        private List<QuizQuestion> quizQuestions;
         public Form1()
         {
 
