@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Media;
 using System.Threading;
 using System.Windows.Forms;
+using MySql.Data.MySqlClient; 
 
 namespace PROG_Part3
 {
@@ -16,7 +17,7 @@ namespace PROG_Part3
         public string Reminder { get; set; } //e.g . "2023-12-31" or "in 3 days"
         public bool Completed { get; set; }
     }
-    public class  QuizQuestion
+    public class QuizQuestion
     {
         public string Question { get; set; }
         public string[] Options { get; set; }
@@ -28,7 +29,9 @@ namespace PROG_Part3
     {
         public Form1()
         {
-            InitializeComponent();
-        }
+            //InitializeComponent();
+            // MY SQL connection string
+            private const string ConnStr =
+            "Server=localhost;Database=cybertask_db;Uid=root;Pwd=;";
     }
 }
