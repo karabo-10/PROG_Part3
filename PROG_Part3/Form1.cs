@@ -34,7 +34,7 @@ namespace PROG_Part3
         "Server=localhost;Database=cybertask_db;Uid=root;Pwd=;";
 
         //Memory and state
-        private string username = "";
+        private string userName = "";
         private string favouriteTopic = "";
         private string lastTopic = "";
         private bool waitingForName = true;
@@ -113,7 +113,7 @@ namespace PROG_Part3
             };
 
         //NLP synonym map(maps alternative words to a standard keyword)
-        private Dictionary<string, string> nlpSynonms = 
+        private Dictionary<string, string> nlpSynonyms = 
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 ["pass"] = "password",
@@ -198,23 +198,27 @@ namespace PROG_Part3
             if (string.IsNullOrEmpty(input)) return;
 
             AppendUser(input);
-            txtInput_KeyDown().Clear();
+            txtInput.Clear();
 
-         //Name collection
-         if (waitingForName)
+            //Name collection
+            if (waitingForName)
             {
-                AppendError("Please enter a valid name using letters only (no numbers or symbols).");
+                if (!IsValidName(input))
+                {
+
+                    AppendError("Please enter a valid name using letters only (no numbers or symbols).");
+                    return;
+                }
+                userName = input;
+                waitingForName = false;
+                AppendDivider();
+                AppendSection("Welcome");
+                TypeResponse($"Welcome {userName}! I am your CyberSecurity Awareness Bot.\n" +
+                                 "Ask me about password security, phishing, or safe browsing.\n" +
+                                 "Type 'quiz' to test your knowledge, 'tasks' to manage tasks, or 'activity log' to see recent actions.");
                 return;
             }
-            userName = input;
-            waitingForName = false;
-            AppendDivider();
-            AppendSection("Welcome");
-            TypeResponse($"Welcome {userName}! I am your CyberSecurity Awareness Bot.\n" +
-                             "Ask me about password security, phishing, or safe browsing.\n" +
-                             "Type 'quiz' to test your knowledge, 'tasks' to manage tasks, or 'activity log' to see recent actions.");
-            return;
-        }
+
             // Exit 
             if (input.Equals("exit", StringComparison.OrdinalIgnoreCase))
             {
@@ -225,6 +229,7 @@ namespace PROG_Part3
              txtInput.Enabled = false;
              return;
             }
+
            // Multi-step: task title entry
             if (awaitingTaskTitle)
             {
@@ -524,7 +529,6 @@ private void InitialiseQuizQuestions()
                 }
             };
         }
- 
         private void StartQuiz()
         {
             inQuiz           = true;
