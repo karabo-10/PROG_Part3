@@ -183,5 +183,21 @@ namespace PROG_Part3
             AppendDivider();
             AppendBot("Please enter your name to get started:");
         }
+        //Send/enter buttons
+        private void btnSend_Click(object sender, EventArgs e) => ProcessInput();
+
+        private void txtInput_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter) { e.SuppressKeyPress = true; ProcessInput(); }
+        }
+        private void ProcessInput()
+        {
+            if (isTyping) return;
+            string input = txtInput.Text.Trim();
+            if (string.IsNullOrEmpty(input)) return;
+
+            AppendUser(input);
+            txtInput_KeyDown().Clear();
+        }
     }
 }
