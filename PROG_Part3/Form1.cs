@@ -144,7 +144,7 @@ namespace PROG_Part3
            
         //Sentiment map
         private Dictionary<string, string> sentimentPrefixes =
-            new Dictionary<string, string(StringComparer.OrdinalIgnoreCase)
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             ["worried"]     = "It's understandable to feel that way. Here are some tips: ",
             ["scared"]      = "Don't worry — learning about this is already the right step. ",
@@ -612,6 +612,115 @@ private void InitialiseQuizQuestions()
             string result = $"Quiz complete! Your score: {quizScore}/{quizQuestions.Count} ({pct}%)\n{grade}";
             AppendColoured(result, Color.FromArgb(255, 220, 50));
             LogActivity($"Quiz completed — score {quizScore}/{quizQuestions.Count} ({pct}%).");
+        }
+//MySQL Database
+  private void EnsureDatabaseExists()
+        {
+            try
+            {
+                using (var conn = new MySqlConnection(ConnStr))
+                {
+                    conn.Open();
+                    string sql = @"
+                        CREATE TABLE IF NOT EXISTS tasks (
+                            id          INT AUTO_INCREMENT PRIMARY KEY,
+                            title       VARCHAR(255)  NOT NULL,
+                            description TEXT,
+                            reminder    VARCHAR(100),
+                            completed   TINYINT(1) DEFAULT 0,
+                            created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+                        );";
+                    new MySqlCommand(sql, conn).ExecuteNonQuery();
+                }
+            }
+            catch (Exception ex)
+            {
+                AppendError($"DB Error (setup): {ex.Message}");
+            }
+        }
+ 
+        private void SaveTaskToDb(string title, string desc, string reminder)
+        {
+            try
+            {
+                using (var conn = new MySqlConnection(ConnStr))
+                {
+                    conn.Open();
+                    string sql = "INSERT INTO tasks (title, description, reminder) VALUES (@t,@d,@r)";
+                    var cmd = new MySqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@t", title);
+                    cmd.Parameters.AddWithValue("@d", desc);
+                    cmd.Parameters.AddWithValue("@r", reminder);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            catch (Exception ex) { AppendError($"DB Error (save): {ex.Message}"); }
+        }
+ 
+        private string GetTasksFromDb()
+        {
+            try
+            {
+                using (var conn = new MySqlConnection(ConnStr))
+                {
+                    conn.Open();
+                    string sql = "SELECT id, title, reminder, completed FROM tasks ORDER BY id DESC LIMIT 20";
+                    var reader = new MySqlCommand(sql, conn).ExecuteReader();
+                    var lines  = new System.Text.StringBuilder();
+                    lines.AppendLine($"📋 Your cybersecurity tasks, {userName}:");
+                    bool any = false;
+                    while (reader.Read())
+                    {
+                        any = true;
+                        int    id        = reader.GetInt32(0);
+                        string title     = reader.GetString(1);
+                        string reminder  = reader.IsDBNull(2) ? "" : reader.GetString(2);
+                        bool   completed = reader.GetBoolean(3);
+                        string status    = completed ? "✅ Done" : "🔲 Pending";
+                        string rem       = string.IsNullOrEmpty(reminder) ? "" : $" | ⏰ {reminder}";
+                        lines.AppendLine($"[{id}] {title}{rem} — {status}");
+                    }
+                    if (!any) lines.AppendLine("No tasks found. Type 'add task' to create one!");
+                    return lines.ToString();
+                }
+            }
+            catch (Exception ex) { return $"DB Error (read): {ex.Message}"; }
+        }
+ 
+        private string DeleteTaskFromDb(int id)
+        {
+            try
+            {
+                using (var conn = new MySqlConnection(ConnStr))
+                {
+                    conn.Open();
+                    var cmd = new MySqlCommand("DELETE FROM tasks WHERE id=@id", conn);
+                    cmd.Parameters.AddWithValue("@id", id);
+                    int rows = cmd.ExecuteNonQuery();
+                    if (rows == 0) return $"No task with ID {id} found.";
+                    LogActivity($"Task ID {id} deleted.");
+                    return $"Task ID {id} has been deleted.";
+                }
+            }
+            catch (Exception ex) { return $"DB Error (delete): {ex.Message}"; }
+        }
+ 
+        private string MarkTaskComplete(int id)
+        {
+            try
+            {
+                using (var conn = new MySqlConnection(ConnStr))
+                {
+                    conn.Open();
+                    var cmd = new MySqlCommand("UPDATE tasks SET completed=1 WHERE id=@id", conn);
+                    cmd.Parameters.AddWithValue("@id", id);
+                    int rows = cmd.ExecuteNonQuery();
+                    if (rows == 0) return $"No task with ID {id} found.";
+                    LogActivity($"Task ID {id} marked as complete.");
+                    return $"✅ Task ID {id} marked as complete! Well done, {userName}.";
+                }
+            }
+            catch (Exception ex) { return $"DB Error (update): {ex.Message}"; }
         }
  
 }
