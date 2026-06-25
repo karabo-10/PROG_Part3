@@ -1,10 +1,11 @@
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Media;
 using System.Threading;
 using System.Windows.Forms;
-using MySql.Data.MySqlClient;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace PROG_Part3
 {
@@ -198,6 +199,32 @@ namespace PROG_Part3
 
             AppendUser(input);
             txtInput_KeyDown().Clear();
+
+         //Name collection
+         if (waitingForName)
+            {
+                AppendError("Please enter a valid name using letters only (no numbers or symbols).");
+                return;
+            }
+            userName = input;
+            waitingForName = false;
+            AppendDivider();
+            AppendSection("Welcome");
+            TypeResponse($"Welcome {userName}! I am your CyberSecurity Awareness Bot.\n" +
+                             "Ask me about password security, phishing, or safe browsing.\n" +
+                             "Type 'quiz' to test your knowledge, 'tasks' to manage tasks, or 'activity log' to see recent actions.");
+            return;
         }
-    }
+            // Exit 
+            if (input.Equals("exit", StringComparison.OrdinalIgnoreCase))
+            {
+             AppendDivider();
+             AppendColoured($"Goodbye {userName}! Stay safe online. 👋", Color.FromArgb(255, 220, 50));
+             AppendDivider();
+             btnSend.Enabled  = false;
+             txtInput.Enabled = false;
+             return;
+            }
+
+}
 }
