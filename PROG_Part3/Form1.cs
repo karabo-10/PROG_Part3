@@ -225,6 +225,16 @@ namespace PROG_Part3
              txtInput.Enabled = false;
              return;
             }
+       // Multi-step: task title entry
+            if (awaitingTaskTitle)
+            {
+                pendingTaskTitle = input;
+                pendingTaskDesc  = $"Task: {input}";
+                awaitingTaskTitle = false;
+                awaitingReminder  = true;
+                TypeResponse($"Got it! Task title: '{pendingTaskTitle}'.\nWould you like a reminder? If yes, type a date (e.g. 2025-07-01) or timeframe (e.g. 'in 3 days'). Otherwise type 'no'.");
+                return;
+            }
 
 }
 }
