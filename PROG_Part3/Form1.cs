@@ -51,6 +51,65 @@ namespace PROG_Part3
         private bool awaitingReminder = false;
         private string pendingTaskTitle = "";
         private string pendingTaskDesc = "";
+
+        //Activity log
+        private List<string> activityLog = new List<string>();
+
+        //Keyword responses
+        // ─── Keyword Responses ────────────────────────────────────────────────
+        private Dictionary<string, List<string>> keywordResponses =
+            new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["password"] = new List<string>
+            {
+                "Use a strong password with a mix of letters, numbers, and symbols.",
+                "Never reuse the same password across multiple sites. Consider a password manager like Bitwarden.",
+                "Enable two-factor authentication (2FA) alongside a strong password for maximum security.",
+                "Follow your organisation's policies when creating passwords."
+            },
+                ["phishing"] = new List<string>
+            {
+                "Phishing tricks you into revealing sensitive info through fake emails. Always check the sender's address!",
+                "Be cautious of emails asking for personal information. Scammers disguise themselves as trusted organisations.",
+                "Never click links in unexpected emails — type the website address yourself instead."
+            },
+                ["browsing"] = new List<string>
+            {
+                "Always use secure (https) websites and avoid unknown links.",
+                "Consider uBlock Origin to block malicious ads and trackers.",
+                "Keep your browser updated — updates include important security patches."
+            },
+                ["privacy"] = new List<string>
+            {
+                "Limit what you share online and review your app permissions regularly.",
+                "Review your social media privacy settings to control who sees your information.",
+                "Be mindful of personal data you share — once it's out there, it's hard to take back."
+            },
+                ["malware"] = new List<string>
+            {
+                "Malware is harmful software that damages your device or steals data. Avoid files from unknown sources!",
+                "Keep your antivirus software up to date to defend against the latest threats.",
+                "Regularly scan your device and be cautious of unexpected pop-ups."
+            },
+                ["scam"] = new List<string>
+            {
+                "Online scams try to trick you into giving away money or personal information.",
+                "If an offer seems too good to be true, it probably is.",
+                "Scammers create urgency — slow down and verify any unexpected requests."
+            },
+                ["wifi"] = new List<string>
+            {
+                "Avoid logging into sensitive accounts like banking on public Wi-Fi!",
+                "Use a VPN on public Wi-Fi to protect your browsing data.",
+                "Use your mobile data instead of public Wi-Fi for sensitive transactions."
+            },
+                ["virus"] = new List<string>
+            {
+                "Computer viruses are malicious programs. Use antivirus software and avoid unknown files!",
+                "Keep your OS updated — many viruses exploit outdated software.",
+                "Never open email attachments from unknown senders."
+            }
+            };
         public Form1()
         {
 
