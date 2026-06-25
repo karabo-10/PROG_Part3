@@ -225,7 +225,7 @@ namespace PROG_Part3
              txtInput.Enabled = false;
              return;
             }
-       // Multi-step: task title entry
+           // Multi-step: task title entry
             if (awaitingTaskTitle)
             {
                 pendingTaskTitle = input;
@@ -235,6 +235,35 @@ namespace PROG_Part3
                 TypeResponse($"Got it! Task title: '{pendingTaskTitle}'.\nWould you like a reminder? If yes, type a date (e.g. 2025-07-01) or timeframe (e.g. 'in 3 days'). Otherwise type 'no'.");
                 return;
             }
+            
+            // Reminder entry 
+            if (awaitingReminder)
+            {
+                string reminder = input.Equals("no", StringComparison.OrdinalIgnoreCase) ? "" : input;
+                awaitingReminder = false;
+                SaveTaskToDb(pendingTaskTitle, pendingTaskDesc, reminder);
+                string logEntry = $"Task added: '{pendingTaskTitle}'" +
+                                  (string.IsNullOrEmpty(reminder) ? " (no reminder)." : $" | Reminder: {reminder}.");
+                
+                LogActivity(logEntry);
+                string msg = $"Task '{pendingTaskTitle}' saved!";
+                if (!string.IsNullOrEmpty(reminder)) msg += $" I'll remind you: {reminder}.";
+                TypeResponse(msg);
+                return;
+            }
+            
+            // ── Quiz answer handling ──────────────────────────────────────────
+            if (inQuiz && awaitingQuizAnswer)
+            {
+                HandleQuizAnswer(input);
+                return;
+            }
+ 
+            // ── General response ──────────────────────────────────────────────
+            string response = BuildResponse(input);
+            TypeResponse(response);
+        }
+ 
 
 }
 }
