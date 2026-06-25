@@ -252,18 +252,183 @@ namespace PROG_Part3
                 return;
             }
             
-            // ── Quiz answer handling ──────────────────────────────────────────
+            // Quiz answer handling 
             if (inQuiz && awaitingQuizAnswer)
             {
                 HandleQuizAnswer(input);
                 return;
             }
  
-            // ── General response ──────────────────────────────────────────────
+            // General response 
             string response = BuildResponse(input);
             TypeResponse(response);
         }
- 
+           // Core Response Builder (NLP-enhanced) 
+        private string BuildResponse(string raw)
+{
+    string lower = raw.ToLower();
+
+    // sentiment prefix
+    string sentimentPrefix = "";
+    foreach (var kv in sentimentPrefixes)
+        if (lower.Contains(kv.Key)) { sentimentPrefix = kv.Value; break; }
+
+    // Activity log 
+    if (lower.Contains("activity log") || lower.Contains("show log") ||
+        lower.Contains("what have you done") || lower.Contains("recent actions"))
+        return BuildActivityLogResponse();
+
+    // Quiz trigger 
+    if (lower.Contains("quiz") || lower.Contains("game") || lower.Contains("test me"))
+    {
+        StartQuiz();
+        return null; // quiz start handles its own output
+    }
+
+    // Task triggers (NLP: many phrasings) 
+    bool isAddTask = lower.Contains("add task") || lower.Contains("new task") ||
+                     lower.Contains("create task") || lower.Contains("add a task") ||
+                     (lower.Contains("add") && lower.Contains("task")) ||
+                     lower.Contains("remind me to") || lower.Contains("set a reminder") ||
+                     lower.Contains("set reminder");
+
+    bool isViewTasks = lower.Contains("view task") || lower.Contains("show task") ||
+                       lower.Contains("list task") || lower.Contains("my tasks") ||
+                       lower.Contains("tasks");
+
+    bool isDeleteTask = lower.Contains("delete task") || lower.Contains("remove task") ||
+                        lower.Contains("complete task") || lower.Contains("done with task") ||
+                        lower.Contains("mark complete");
+
+    if (isAddTask)
+    {
+        // Try to extract task name inline, e.g. "add task enable 2FA"
+        string inlineTitle = ExtractInlineTask(lower);
+        if (!string.IsNullOrEmpty(inlineTitle))
+        {
+            pendingTaskTitle = inlineTitle;
+            pendingTaskDesc = $"Task: {inlineTitle}";
+            awaitingReminder = true;
+            LogActivity($"Task creation started: '{inlineTitle}'.");
+            return $"Task title detected: '{inlineTitle}'.\nWould you like a reminder? Type a date (e.g. 2025-07-01) or 'in 3 days', or type 'no'.";
+        }
+        else
+        {
+            awaitingTaskTitle = true;
+            return $"Sure {userName}! What is the title of the task you'd like to add?";
+        }
+    }
+
+    if (isDeleteTask)
+    {
+        return $"{userName}, to delete or complete a task, type: 'delete task [id]' or 'complete task [id]'.\nType 'my tasks' to see IDs.";
+    }
+
+    // Handle "delete task 3" or "complete task 2"
+    if (lower.StartsWith("delete task ") || lower.StartsWith("remove task "))
+    {
+        string idStr = lower.Replace("delete task ", "").Replace("remove task ", "").Trim();
+        if (int.TryParse(idStr, out int delId))
+            return DeleteTaskFromDb(delId);
+        return "Please provide a valid task ID number.";
+    }
+
+    if (lower.StartsWith("complete task "))
+    {
+        string idStr = lower.Replace("complete task ", "").Trim();
+        if (int.TryParse(idStr, out int compId))
+            return MarkTaskComplete(compId);
+        return "Please provide a valid task ID number.";
+    }
+
+    if (isViewTasks)
+        return GetTasksFromDb();
+
+    // Memory recall 
+    if (lower.Contains("what do you remember") || lower.Contains("what do you know about me"))
+    {
+        string mem = $"I remember your name is {userName}.";
+        if (!string.IsNullOrEmpty(favouriteTopic))
+            mem += $" You mentioned you're interested in {favouriteTopic}.";
+        return mem;
+    }
+
+    if (lower.Contains("how are you"))
+        return $"I'm functioning perfectly, {userName}! Ready to help you stay safe online.";
+
+    if (lower.Contains("purpose"))
+        return $"My purpose is to help you, {userName}, learn about cybersecurity and safe online practices.";
+
+    if (lower.Contains("what can i ask") || lower.Contains("help") || lower.Contains("topics"))
+        return $"{userName}, you can ask me about passwords, phishing, browsing, malware, scams, wifi, viruses, or type 'quiz' for a game!";
+
+    if (lower.Contains("hello") || lower.Contains("hi") || lower.Contains("hey"))
+        return $"Hello {userName}! How can I help you stay safe online today?";
+
+    // Follow-up
+    foreach (var phrase in followUpPhrases)
+    {
+        if (lower.Contains(phrase) && !string.IsNullOrEmpty(lastTopic)
+            && keywordResponses.ContainsKey(lastTopic))
+            return sentimentPrefix + keywordResponses[lastTopic][rng.Next(keywordResponses[lastTopic].Count)];
+    }
+
+    // NLP: resolve synonyms first 
+    string resolvedTopic = ResolveTopicNLP(lower);
+
+    if (!string.IsNullOrEmpty(resolvedTopic) && keywordResponses.ContainsKey(resolvedTopic))
+    {
+        lastTopic = resolvedTopic;
+
+        if (lower.Contains("interest") || lower.Contains("love") || lower.Contains("like") || lower.Contains("favourite"))
+        {
+            favouriteTopic = resolvedTopic;
+            return $"Great! I'll remember you're interested in {resolvedTopic}. It's crucial for staying safe online.\n"
+                 + keywordResponses[resolvedTopic][rng.Next(keywordResponses[resolvedTopic].Count)];
+        }
+
+        string personalised = (!string.IsNullOrEmpty(favouriteTopic) &&
+                               favouriteTopic.Equals(resolvedTopic, StringComparison.OrdinalIgnoreCase))
+            ? $"As someone interested in {favouriteTopic}, here's a tip: " : "";
+
+        return sentimentPrefix + personalised + $"{userName}, " +
+               keywordResponses[resolvedTopic][rng.Next(keywordResponses[resolvedTopic].Count)];
+    }
+
+    return $"Sorry {userName}, I didn't quite understand that. Could you rephrase? " +
+           "Try asking about passwords, phishing, scams, privacy, malware, or type 'quiz' or 'tasks'.";
+}
+
+// ─── NLP: resolve topic from input (synonyms + direct keywords) ───────
+private string ResolveTopicNLP(string lower)
+{
+    // Direct keyword match first
+    foreach (var kv in keywordResponses)
+        if (lower.Contains(kv.Key)) return kv.Key;
+
+    // Synonym lookup
+    foreach (var kv in nlpSynonyms)
+        if (lower.Contains(kv.Key)) return kv.Value;
+
+    return null;
+}
+
+// ─── Extract inline task title from input ─────────────────────────────
+private string ExtractInlineTask(string lower)
+{
+    string[] prefixes = { "add task ", "new task ", "create task ", "add a task ", "remind me to ", "set a reminder to ", "set reminder to " };
+    foreach (var p in prefixes)
+    {
+        if (lower.Contains(p))
+        {
+            int idx = lower.IndexOf(p) + p.Length;
+            string title = lower.Substring(idx).Trim();
+            if (!string.IsNullOrEmpty(title))
+                return char.ToUpper(title[0]) + title.Substring(1);
+        }
+    }
+    return null;
+}
 
 }
 }
