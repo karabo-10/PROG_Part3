@@ -1,3 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Media;
+using System.Threading;
+using System.Windows.Forms;
+
 namespace PROG_Part3
 {
     public partial class Form1 : Form
