@@ -7,7 +7,7 @@ using System.Windows.Forms;
 
 namespace PROG_Part3
 {
-    // Data models and basic fiels
+    // Data models and basic fields
     public class Cybertask
     {
         public int Id { get; set; }
@@ -15,6 +15,14 @@ namespace PROG_Part3
         public string Description { get; set; }
         public string Reminder { get; set; } //e.g . "2023-12-31" or "in 3 days"
         public bool Completed { get; set; }
+    }
+    public class  QuizQuestion
+    {
+        public string Question { get; set; }
+        public string[] Options { get; set; }
+        public string Answer { get; set; }
+        public string Explanation { get; set; }
+        public bool IsTrueFalse { get; set; } // For true/false questions
     }
     public partial class Form1 : Form
     {
