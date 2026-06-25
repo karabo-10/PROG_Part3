@@ -45,6 +45,12 @@ namespace PROG_Part3
         private int quizScore = 0;
         private bool awaitingQuizAnswer = false;
         private List<QuizQuestion> quizQuestions;
+
+        //Task assistant state
+        private bool awaitingTaskTitle = false;
+        private bool awaitingReminder = false;
+        private string pendingTaskTitle = "";
+        private string pendingTaskDesc = "";
         public Form1()
         {
 
