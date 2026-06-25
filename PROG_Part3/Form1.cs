@@ -429,6 +429,190 @@ private string ExtractInlineTask(string lower)
     }
     return null;
 }
-
+// Method for Quiz questions and answers functionality
+private void InitialiseQuizQuestions()
+        {
+            quizQuestions = new List<QuizQuestion>
+            {
+                new QuizQuestion
+                {
+                    Question    = "What should you do if you receive an email asking for your password?",
+                    Options     = new[] { "A) Reply with your password", "B) Delete the email", "C) Report it as phishing", "D) Ignore it" },
+                    Answer      = "C",
+                    Explanation = "Reporting phishing emails helps protect others and trains spam filters.",
+                    IsTrueFalse = false
+                },
+                new QuizQuestion
+                {
+                    Question    = "True or False: Using the same password for all accounts is safe.",
+                    Options     = null,
+                    Answer      = "False",
+                    Explanation = "If one account is compromised, all accounts with the same password are at risk.",
+                    IsTrueFalse = true
+                },
+                new QuizQuestion
+                {
+                    Question    = "What does HTTPS indicate on a website?",
+                    Options     = new[] { "A) The site is fast", "B) The connection is encrypted and secure", "C) The site is popular", "D) The site is free" },
+                    Answer      = "B",
+                    Explanation = "HTTPS uses SSL/TLS encryption to protect data between you and the website.",
+                    IsTrueFalse = false
+                },
+                new QuizQuestion
+                {
+                    Question    = "True or False: Public Wi-Fi is always safe to use for banking.",
+                    Options     = null,
+                    Answer      = "False",
+                    Explanation = "Public Wi-Fi can be intercepted. Use a VPN or mobile data for sensitive transactions.",
+                    IsTrueFalse = true
+                },
+                new QuizQuestion
+                {
+                    Question    = "What is two-factor authentication (2FA)?",
+                    Options     = new[] { "A) Two passwords", "B) A second verification step beyond a password", "C) Two usernames", "D) A backup email" },
+                    Answer      = "B",
+                    Explanation = "2FA adds an extra layer of security, usually a code sent to your phone.",
+                    IsTrueFalse = false
+                },
+                new QuizQuestion
+                {
+                    Question    = "Which of these is an example of social engineering?",
+                    Options     = new[] { "A) Installing antivirus software", "B) Pretending to be IT support to get your password", "C) Updating your OS", "D) Using a VPN" },
+                    Answer      = "B",
+                    Explanation = "Social engineering manipulates people rather than systems to gain access.",
+                    IsTrueFalse = false
+                },
+                new QuizQuestion
+                {
+                    Question    = "True or False: Antivirus software alone is enough to protect you from all cyber threats.",
+                    Options     = null,
+                    Answer      = "False",
+                    Explanation = "You also need strong passwords, 2FA, updates, and good browsing habits.",
+                    IsTrueFalse = true
+                },
+                new QuizQuestion
+                {
+                    Question    = "What is ransomware?",
+                    Options     = new[] { "A) Software that speeds up your PC", "B) Malware that encrypts your files and demands payment", "C) A type of antivirus", "D) A browser extension" },
+                    Answer      = "B",
+                    Explanation = "Ransomware locks your data and demands a ransom to restore access.",
+                    IsTrueFalse = false
+                },
+                new QuizQuestion
+                {
+                    Question    = "True or False: You should click links in emails to verify they are real.",
+                    Options     = null,
+                    Answer      = "False",
+                    Explanation = "Always go directly to the official website by typing the address yourself.",
+                    IsTrueFalse = true
+                },
+                new QuizQuestion
+                {
+                    Question    = "Which password is the strongest?",
+                    Options     = new[] { "A) password123", "B) MyName2000", "C) Tr0ub4dor&3!", "D) 12345678" },
+                    Answer      = "C",
+                    Explanation = "A strong password uses uppercase, lowercase, numbers, and special characters.",
+                    IsTrueFalse = false
+                },
+                new QuizQuestion
+                {
+                    Question    = "What is a VPN used for?",
+                    Options     = new[] { "A) Speeding up downloads", "B) Hiding your IP and encrypting internet traffic", "C) Blocking ads", "D) Storing passwords" },
+                    Answer      = "B",
+                    Explanation = "A VPN creates an encrypted tunnel for your internet connection.",
+                    IsTrueFalse = false
+                }
+            };
+        }
+ 
+        private void StartQuiz()
+        {
+            inQuiz           = true;
+            quizIndex        = 0;
+            quizScore        = 0;
+            awaitingQuizAnswer = false;
+ 
+            // Shuffle questions
+            for (int i = quizQuestions.Count - 1; i > 0; i--)
+            {
+                int j = rng.Next(i + 1);
+                var tmp = quizQuestions[i];
+                quizQuestions[i] = quizQuestions[j];
+                quizQuestions[j] = tmp;
+            }
+ 
+            LogActivity("Quiz started.");
+            AppendSection("Cybersecurity Quiz");
+            AppendBot($"Let's test your cybersecurity knowledge, {userName}! There are {quizQuestions.Count} questions.\nType your answer (A/B/C/D or True/False) and press Enter.\n");
+            ShowQuizQuestion();
+        }
+ 
+        private void ShowQuizQuestion()
+        {
+            if (quizIndex >= quizQuestions.Count)
+            {
+                EndQuiz();
+                return;
+            }
+ 
+            var q = quizQuestions[quizIndex];
+            string text = $"Q{quizIndex + 1}/{quizQuestions.Count}: {q.Question}\n";
+ 
+            if (q.IsTrueFalse)
+                text += "Answer True or False.";
+            else
+            {
+                foreach (var opt in q.Options)
+                    text += opt + "\n";
+                text += "Enter A, B, C, or D.";
+            }
+ 
+            AppendBot(text);
+            awaitingQuizAnswer = true;
+        }
+ 
+        private void HandleQuizAnswer(string raw)
+        {
+            awaitingQuizAnswer = false;
+            var q      = quizQuestions[quizIndex];
+            string ans = raw.Trim().ToUpper();
+ 
+            // normalise True/False answers
+            if (ans == "TRUE" || ans == "T")  ans = "True";
+            if (ans == "FALSE" || ans == "F") ans = "False";
+ 
+            bool correct = ans.Equals(q.Answer, StringComparison.OrdinalIgnoreCase);
+ 
+            if (correct)
+            {
+                quizScore++;
+                AppendColoured($"Correct! {q.Explanation}", Color.FromArgb(100, 220, 100));
+            }
+            else
+            {
+                AppendColoured($"Incorrect. The answer was: {q.Answer}\n{q.Explanation}", Color.FromArgb(255, 100, 100));
+            }
+ 
+            quizIndex++;
+            Thread.Sleep(300);
+            ShowQuizQuestion();
+        }
+ 
+        private void EndQuiz()
+        {
+            inQuiz = false;
+            int pct = (int)((quizScore / (double)quizQuestions.Count) * 100);
+ 
+            string grade;
+            if      (pct >= 90) grade = "Outstanding! You're a cybersecurity pro!";
+            else if (pct >= 70) grade = "Great job! You know your stuff.";
+            else if (pct >= 50) grade = "Not bad, but keep learning to stay safe online!";
+            else                grade = "Keep learning to stay safe online!";
+ 
+            string result = $"Quiz complete! Your score: {quizScore}/{quizQuestions.Count} ({pct}%)\n{grade}";
+            AppendColoured(result, Color.FromArgb(255, 220, 50));
+            LogActivity($"Quiz completed — score {quizScore}/{quizQuestions.Count} ({pct}%).");
+        }
+ 
 }
 }
