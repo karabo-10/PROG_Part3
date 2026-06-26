@@ -62,6 +62,10 @@
                 | System.Windows.Forms.AnchorStyles.Left
                 | System.Windows.Forms.AnchorStyles.Right;
             txtInput.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtInput_KeyDown);
+            txtInput.BackColor = System.Drawing.Color.FromArgb(30, 30, 46);
+            txtInput.ForeColor = System.Drawing.Color.White;
+            txtInput.Font = new System.Drawing.Font("Consolas", 10F);
+            txtInput.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 
             // 
             // btnSend
@@ -99,11 +103,25 @@
             Text = "CyberSecurity Awareness Bot";
         }
 
+                // 
+        // btnQuit
+        // 
+        this.btnQuit = new System.Windows.Forms.Button();
+        this.btnQuit.Location = new System.Drawing.Point(718, 373);
+        this.btnQuit.Name = "btnQuit";
+        this.btnQuit.Size = new System.Drawing.Size(70, 27);
+        this.btnQuit.Text = "Quit";
+        this.btnQuit.BackColor = System.Drawing.Color.FromArgb(180, 50, 50);
+        this.btnQuit.ForeColor = System.Drawing.Color.White;
+        this.btnQuit.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+        this.btnQuit.Font = new System.Drawing.Font("Consolas", 9F, System.Drawing.FontStyle.Bold);
+        this.btnQuit.Click += new System.EventHandler(this.btnQuit_Click);
         #endregion
 
         private System.Windows.Forms.RichTextBox rtbChat;
         private System.Windows.Forms.TextBox txtInput;
         private System.Windows.Forms.Button btnSend;
         private System.Windows.Forms.Button btnClear;
+        private System.Windows.Forms.Button btnQuit;
     }
 }
