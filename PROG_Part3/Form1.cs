@@ -28,10 +28,10 @@ namespace PROG_Part3
     }
     public partial class Form1 : Form
     {
-        
+
         // MY SQL connection string
         private const string ConnStr =
-        "Server=localhost;Database=cybertask_db;Uid=root;Pwd=;";
+    "Server=localhost;Database=cybertask_db;Uid=root;Pwd=root1234;";
 
         //Memory and state
         private string userName = "";
