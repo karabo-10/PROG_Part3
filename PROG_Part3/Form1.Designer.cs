@@ -34,6 +34,7 @@
             txtInput = new System.Windows.Forms.TextBox();
             btnSend = new System.Windows.Forms.Button();
             btnClear = new System.Windows.Forms.Button();
+            btnQuit = new System.Windows.Forms.Button();
 
             // 
             // rtbChat
@@ -92,6 +93,22 @@
             btnClear.Click += new System.EventHandler(this.btnClear_Click);
 
             // 
+            // btnQuit
+            // 
+            btnQuit.Location = new System.Drawing.Point(718, 373);
+            btnQuit.Name = "btnQuit";
+            btnQuit.Size = new System.Drawing.Size(70, 27);
+            btnQuit.TabIndex = 4;
+            btnQuit.Text = "Quit";
+            btnQuit.BackColor = System.Drawing.Color.FromArgb(180, 50, 50);
+            btnQuit.ForeColor = System.Drawing.Color.White;
+            btnQuit.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            btnQuit.Font = new System.Drawing.Font("Consolas", 9F, System.Drawing.FontStyle.Bold);
+            btnQuit.Anchor = System.Windows.Forms.AnchorStyles.Bottom
+                | System.Windows.Forms.AnchorStyles.Right;
+            btnQuit.Click += new System.EventHandler(this.btnQuit_Click);
+
+            // 
             // Form1
             // 
             AutoScaleMode = AutoScaleMode.Font;
@@ -100,22 +117,10 @@
             Controls.Add(txtInput);
             Controls.Add(btnSend);
             Controls.Add(btnClear);
+            Controls.Add(btnQuit);
             Text = "CyberSecurity Awareness Bot";
         }
 
-                // 
-        // btnQuit
-        // 
-        this.btnQuit = new System.Windows.Forms.Button();
-        this.btnQuit.Location = new System.Drawing.Point(718, 373);
-        this.btnQuit.Name = "btnQuit";
-        this.btnQuit.Size = new System.Drawing.Size(70, 27);
-        this.btnQuit.Text = "Quit";
-        this.btnQuit.BackColor = System.Drawing.Color.FromArgb(180, 50, 50);
-        this.btnQuit.ForeColor = System.Drawing.Color.White;
-        this.btnQuit.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-        this.btnQuit.Font = new System.Drawing.Font("Consolas", 9F, System.Drawing.FontStyle.Bold);
-        this.btnQuit.Click += new System.EventHandler(this.btnQuit_Click);
         #endregion
 
         private System.Windows.Forms.RichTextBox rtbChat;

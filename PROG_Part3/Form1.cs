@@ -5,7 +5,6 @@ using System.Drawing;
 using System.Media;
 using System.Threading;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace PROG_Part3
 {
@@ -113,7 +112,7 @@ namespace PROG_Part3
             };
 
         //NLP synonym map(maps alternative words to a standard keyword)
-        private Dictionary<string, string> nlpSynonyms = 
+        private Dictionary<string, string> nlpSynonyms =
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 ["pass"] = "password",
@@ -141,20 +140,20 @@ namespace PROG_Part3
                 ["hotspot"] = "wifi",
                 ["public wifi"] = "wifi"
             };
-           
+
         //Sentiment map
         private Dictionary<string, string> sentimentPrefixes =
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["worried"]     = "It's understandable to feel that way. Here are some tips: ",
-            ["scared"]      = "Don't worry — learning about this is already the right step. ",
-            ["frustrated"]  = "I hear you — cybersecurity can feel overwhelming. Let's break it down: ",
-            ["confused"]    = "No problem! Let me explain more clearly. ",
-            ["curious"]     = "Great curiosity! Staying informed is the best defence. ",
-            ["anxious"]     = "Take a deep breath — awareness is the first step to staying safe online. ",
-            ["angry"]       = "Let's channel that energy into staying better protected. ",
-            ["overwhelmed"] = "Let's take it one step at a time. Here's one thing you can do: "
-        };
+            {
+                ["worried"] = "It's understandable to feel that way. Here are some tips: ",
+                ["scared"] = "Don't worry — learning about this is already the right step. ",
+                ["frustrated"] = "I hear you — cybersecurity can feel overwhelming. Let's break it down: ",
+                ["confused"] = "No problem! Let me explain more clearly. ",
+                ["curious"] = "Great curiosity! Staying informed is the best defence. ",
+                ["anxious"] = "Take a deep breath — awareness is the first step to staying safe online. ",
+                ["angry"] = "Let's channel that energy into staying better protected. ",
+                ["overwhelmed"] = "Let's take it one step at a time. Here's one thing you can do: "
+            };
 
         //Follow up phrases
         private List<string> followUpPhrases = new List<string>
@@ -164,7 +163,7 @@ namespace PROG_Part3
         };
 
         private Random rng = new Random();
-    public Form1()
+        public Form1()
         {
             InitializeComponent();
             InitialiseQuizQuestions();
@@ -222,25 +221,25 @@ namespace PROG_Part3
             // Exit 
             if (input.Equals("exit", StringComparison.OrdinalIgnoreCase))
             {
-             AppendDivider();
-             AppendColoured($"Goodbye {userName}! Stay safe online. 👋", Color.FromArgb(255, 220, 50));
-             AppendDivider();
-             btnSend.Enabled  = false;
-             txtInput.Enabled = false;
-             return;
+                AppendDivider();
+                AppendColoured($"Goodbye {userName}! Stay safe online. 👋", Color.FromArgb(255, 220, 50));
+                AppendDivider();
+                btnSend.Enabled = false;
+                txtInput.Enabled = false;
+                return;
             }
 
-           // Multi-step: task title entry
+            // Multi-step: task title entry
             if (awaitingTaskTitle)
             {
                 pendingTaskTitle = input;
-                pendingTaskDesc  = $"Task: {input}";
+                pendingTaskDesc = $"Task: {input}";
                 awaitingTaskTitle = false;
-                awaitingReminder  = true;
+                awaitingReminder = true;
                 TypeResponse($"Got it! Task title: '{pendingTaskTitle}'.\nWould you like a reminder? If yes, type a date (e.g. 2025-07-01) or timeframe (e.g. 'in 3 days'). Otherwise type 'no'.");
                 return;
             }
-            
+
             // Reminder entry 
             if (awaitingReminder)
             {
@@ -249,193 +248,193 @@ namespace PROG_Part3
                 SaveTaskToDb(pendingTaskTitle, pendingTaskDesc, reminder);
                 string logEntry = $"Task added: '{pendingTaskTitle}'" +
                                   (string.IsNullOrEmpty(reminder) ? " (no reminder)." : $" | Reminder: {reminder}.");
-                
+
                 LogActivity(logEntry);
                 string msg = $"Task '{pendingTaskTitle}' saved!";
                 if (!string.IsNullOrEmpty(reminder)) msg += $" I'll remind you: {reminder}.";
                 TypeResponse(msg);
                 return;
             }
-            
+
             // Quiz answer handling 
             if (inQuiz && awaitingQuizAnswer)
             {
                 HandleQuizAnswer(input);
                 return;
             }
- 
+
             // General response 
             string response = BuildResponse(input);
             TypeResponse(response);
         }
-           // Core Response Builder (NLP-enhanced) 
+        // Core Response Builder (NLP-enhanced) 
         private string BuildResponse(string raw)
-{
-    string lower = raw.ToLower();
-
-    // sentiment prefix
-    string sentimentPrefix = "";
-    foreach (var kv in sentimentPrefixes)
-        if (lower.Contains(kv.Key)) { sentimentPrefix = kv.Value; break; }
-
-    // Activity log 
-    if (lower.Contains("activity log") || lower.Contains("show log") ||
-        lower.Contains("what have you done") || lower.Contains("recent actions"))
-        return BuildActivityLogResponse();
-
-    // Quiz trigger 
-    if (lower.Contains("quiz") || lower.Contains("game") || lower.Contains("test me"))
-    {
-        StartQuiz();
-        return null; // quiz start handles its own output
-    }
-
-    // Task triggers (NLP: many phrasings) 
-    bool isAddTask = lower.Contains("add task") || lower.Contains("new task") ||
-                     lower.Contains("create task") || lower.Contains("add a task") ||
-                     (lower.Contains("add") && lower.Contains("task")) ||
-                     lower.Contains("remind me to") || lower.Contains("set a reminder") ||
-                     lower.Contains("set reminder");
-
-    bool isViewTasks = lower.Contains("view task") || lower.Contains("show task") ||
-                       lower.Contains("list task") || lower.Contains("my tasks") ||
-                       lower.Contains("tasks");
-
-    bool isDeleteTask = lower.Contains("delete task") || lower.Contains("remove task") ||
-                        lower.Contains("complete task") || lower.Contains("done with task") ||
-                        lower.Contains("mark complete");
-
-    if (isAddTask)
-    {
-        // Try to extract task name inline, e.g. "add task enable 2FA"
-        string inlineTitle = ExtractInlineTask(lower);
-        if (!string.IsNullOrEmpty(inlineTitle))
         {
-            pendingTaskTitle = inlineTitle;
-            pendingTaskDesc = $"Task: {inlineTitle}";
-            awaitingReminder = true;
-            LogActivity($"Task creation started: '{inlineTitle}'.");
-            return $"Task title detected: '{inlineTitle}'.\nWould you like a reminder? Type a date (e.g. 2025-07-01) or 'in 3 days', or type 'no'.";
+            string lower = raw.ToLower();
+
+            // sentiment prefix
+            string sentimentPrefix = "";
+            foreach (var kv in sentimentPrefixes)
+                if (lower.Contains(kv.Key)) { sentimentPrefix = kv.Value; break; }
+
+            // Activity log 
+            if (lower.Contains("activity log") || lower.Contains("show log") ||
+                lower.Contains("what have you done") || lower.Contains("recent actions"))
+                return BuildActivityLogResponse();
+
+            // Quiz trigger 
+            if (lower.Contains("quiz") || lower.Contains("game") || lower.Contains("test me"))
+            {
+                StartQuiz();
+                return null; // quiz start handles its own output
+            }
+
+            // Task triggers (NLP: many phrasings) 
+            bool isAddTask = lower.Contains("add task") || lower.Contains("new task") ||
+                             lower.Contains("create task") || lower.Contains("add a task") ||
+                             (lower.Contains("add") && lower.Contains("task")) ||
+                             lower.Contains("remind me to") || lower.Contains("set a reminder") ||
+                             lower.Contains("set reminder");
+
+            bool isViewTasks = lower.Contains("view task") || lower.Contains("show task") ||
+                               lower.Contains("list task") || lower.Contains("my tasks") ||
+                               lower.Contains("tasks");
+
+            bool isDeleteTask = lower.Contains("delete task") || lower.Contains("remove task") ||
+                                lower.Contains("complete task") || lower.Contains("done with task") ||
+                                lower.Contains("mark complete");
+
+            if (isAddTask)
+            {
+                // Try to extract task name inline, e.g. "add task enable 2FA"
+                string inlineTitle = ExtractInlineTask(lower);
+                if (!string.IsNullOrEmpty(inlineTitle))
+                {
+                    pendingTaskTitle = inlineTitle;
+                    pendingTaskDesc = $"Task: {inlineTitle}";
+                    awaitingReminder = true;
+                    LogActivity($"Task creation started: '{inlineTitle}'.");
+                    return $"Task title detected: '{inlineTitle}'.\nWould you like a reminder? Type a date (e.g. 2025-07-01) or 'in 3 days', or type 'no'.";
+                }
+                else
+                {
+                    awaitingTaskTitle = true;
+                    return $"Sure {userName}! What is the title of the task you'd like to add?";
+                }
+            }
+
+            if (isDeleteTask)
+            {
+                return $"{userName}, to delete or complete a task, type: 'delete task [id]' or 'complete task [id]'.\nType 'my tasks' to see IDs.";
+            }
+
+            // Handle "delete task 3" or "complete task 2"
+            if (lower.StartsWith("delete task ") || lower.StartsWith("remove task "))
+            {
+                string idStr = lower.Replace("delete task ", "").Replace("remove task ", "").Trim();
+                if (int.TryParse(idStr, out int delId))
+                    return DeleteTaskFromDb(delId);
+                return "Please provide a valid task ID number.";
+            }
+
+            if (lower.StartsWith("complete task "))
+            {
+                string idStr = lower.Replace("complete task ", "").Trim();
+                if (int.TryParse(idStr, out int compId))
+                    return MarkTaskComplete(compId);
+                return "Please provide a valid task ID number.";
+            }
+
+            if (isViewTasks)
+                return GetTasksFromDb();
+
+            // Memory recall 
+            if (lower.Contains("what do you remember") || lower.Contains("what do you know about me"))
+            {
+                string mem = $"I remember your name is {userName}.";
+                if (!string.IsNullOrEmpty(favouriteTopic))
+                    mem += $" You mentioned you're interested in {favouriteTopic}.";
+                return mem;
+            }
+
+            if (lower.Contains("how are you"))
+                return $"I'm functioning perfectly, {userName}! Ready to help you stay safe online.";
+
+            if (lower.Contains("purpose"))
+                return $"My purpose is to help you, {userName}, learn about cybersecurity and safe online practices.";
+
+            if (lower.Contains("what can i ask") || lower.Contains("help") || lower.Contains("topics"))
+                return $"{userName}, you can ask me about passwords, phishing, browsing, malware, scams, wifi, viruses, or type 'quiz' for a game!";
+
+            if (lower.Contains("hello") || lower.Contains("hi") || lower.Contains("hey"))
+                return $"Hello {userName}! How can I help you stay safe online today?";
+
+            // Follow-up
+            foreach (var phrase in followUpPhrases)
+            {
+                if (lower.Contains(phrase) && !string.IsNullOrEmpty(lastTopic)
+                    && keywordResponses.ContainsKey(lastTopic))
+                    return sentimentPrefix + keywordResponses[lastTopic][rng.Next(keywordResponses[lastTopic].Count)];
+            }
+
+            // NLP: resolve synonyms first 
+            string resolvedTopic = ResolveTopicNLP(lower);
+
+            if (!string.IsNullOrEmpty(resolvedTopic) && keywordResponses.ContainsKey(resolvedTopic))
+            {
+                lastTopic = resolvedTopic;
+
+                if (lower.Contains("interest") || lower.Contains("love") || lower.Contains("like") || lower.Contains("favourite"))
+                {
+                    favouriteTopic = resolvedTopic;
+                    return $"Great! I'll remember you're interested in {resolvedTopic}. It's crucial for staying safe online.\n"
+                         + keywordResponses[resolvedTopic][rng.Next(keywordResponses[resolvedTopic].Count)];
+                }
+
+                string personalised = (!string.IsNullOrEmpty(favouriteTopic) &&
+                                       favouriteTopic.Equals(resolvedTopic, StringComparison.OrdinalIgnoreCase))
+                    ? $"As someone interested in {favouriteTopic}, here's a tip: " : "";
+
+                return sentimentPrefix + personalised + $"{userName}, " +
+                       keywordResponses[resolvedTopic][rng.Next(keywordResponses[resolvedTopic].Count)];
+            }
+
+            return $"Sorry {userName}, I didn't quite understand that. Could you rephrase? " +
+                   "Try asking about passwords, phishing, scams, privacy, malware, or type 'quiz' or 'tasks'.";
         }
-        else
+
+        // ─── NLP: resolve topic from input (synonyms + direct keywords) ───────
+        private string ResolveTopicNLP(string lower)
         {
-            awaitingTaskTitle = true;
-            return $"Sure {userName}! What is the title of the task you'd like to add?";
+            // Direct keyword match first
+            foreach (var kv in keywordResponses)
+                if (lower.Contains(kv.Key)) return kv.Key;
+
+            // Synonym lookup
+            foreach (var kv in nlpSynonyms)
+                if (lower.Contains(kv.Key)) return kv.Value;
+
+            return null;
         }
-    }
 
-    if (isDeleteTask)
-    {
-        return $"{userName}, to delete or complete a task, type: 'delete task [id]' or 'complete task [id]'.\nType 'my tasks' to see IDs.";
-    }
-
-    // Handle "delete task 3" or "complete task 2"
-    if (lower.StartsWith("delete task ") || lower.StartsWith("remove task "))
-    {
-        string idStr = lower.Replace("delete task ", "").Replace("remove task ", "").Trim();
-        if (int.TryParse(idStr, out int delId))
-            return DeleteTaskFromDb(delId);
-        return "Please provide a valid task ID number.";
-    }
-
-    if (lower.StartsWith("complete task "))
-    {
-        string idStr = lower.Replace("complete task ", "").Trim();
-        if (int.TryParse(idStr, out int compId))
-            return MarkTaskComplete(compId);
-        return "Please provide a valid task ID number.";
-    }
-
-    if (isViewTasks)
-        return GetTasksFromDb();
-
-    // Memory recall 
-    if (lower.Contains("what do you remember") || lower.Contains("what do you know about me"))
-    {
-        string mem = $"I remember your name is {userName}.";
-        if (!string.IsNullOrEmpty(favouriteTopic))
-            mem += $" You mentioned you're interested in {favouriteTopic}.";
-        return mem;
-    }
-
-    if (lower.Contains("how are you"))
-        return $"I'm functioning perfectly, {userName}! Ready to help you stay safe online.";
-
-    if (lower.Contains("purpose"))
-        return $"My purpose is to help you, {userName}, learn about cybersecurity and safe online practices.";
-
-    if (lower.Contains("what can i ask") || lower.Contains("help") || lower.Contains("topics"))
-        return $"{userName}, you can ask me about passwords, phishing, browsing, malware, scams, wifi, viruses, or type 'quiz' for a game!";
-
-    if (lower.Contains("hello") || lower.Contains("hi") || lower.Contains("hey"))
-        return $"Hello {userName}! How can I help you stay safe online today?";
-
-    // Follow-up
-    foreach (var phrase in followUpPhrases)
-    {
-        if (lower.Contains(phrase) && !string.IsNullOrEmpty(lastTopic)
-            && keywordResponses.ContainsKey(lastTopic))
-            return sentimentPrefix + keywordResponses[lastTopic][rng.Next(keywordResponses[lastTopic].Count)];
-    }
-
-    // NLP: resolve synonyms first 
-    string resolvedTopic = ResolveTopicNLP(lower);
-
-    if (!string.IsNullOrEmpty(resolvedTopic) && keywordResponses.ContainsKey(resolvedTopic))
-    {
-        lastTopic = resolvedTopic;
-
-        if (lower.Contains("interest") || lower.Contains("love") || lower.Contains("like") || lower.Contains("favourite"))
+        // ─── Extract inline task title from input ─────────────────────────────
+        private string ExtractInlineTask(string lower)
         {
-            favouriteTopic = resolvedTopic;
-            return $"Great! I'll remember you're interested in {resolvedTopic}. It's crucial for staying safe online.\n"
-                 + keywordResponses[resolvedTopic][rng.Next(keywordResponses[resolvedTopic].Count)];
+            string[] prefixes = { "add task ", "new task ", "create task ", "add a task ", "remind me to ", "set a reminder to ", "set reminder to " };
+            foreach (var p in prefixes)
+            {
+                if (lower.Contains(p))
+                {
+                    int idx = lower.IndexOf(p) + p.Length;
+                    string title = lower.Substring(idx).Trim();
+                    if (!string.IsNullOrEmpty(title))
+                        return char.ToUpper(title[0]) + title.Substring(1);
+                }
+            }
+            return null;
         }
-
-        string personalised = (!string.IsNullOrEmpty(favouriteTopic) &&
-                               favouriteTopic.Equals(resolvedTopic, StringComparison.OrdinalIgnoreCase))
-            ? $"As someone interested in {favouriteTopic}, here's a tip: " : "";
-
-        return sentimentPrefix + personalised + $"{userName}, " +
-               keywordResponses[resolvedTopic][rng.Next(keywordResponses[resolvedTopic].Count)];
-    }
-
-    return $"Sorry {userName}, I didn't quite understand that. Could you rephrase? " +
-           "Try asking about passwords, phishing, scams, privacy, malware, or type 'quiz' or 'tasks'.";
-}
-
-// ─── NLP: resolve topic from input (synonyms + direct keywords) ───────
-private string ResolveTopicNLP(string lower)
-{
-    // Direct keyword match first
-    foreach (var kv in keywordResponses)
-        if (lower.Contains(kv.Key)) return kv.Key;
-
-    // Synonym lookup
-    foreach (var kv in nlpSynonyms)
-        if (lower.Contains(kv.Key)) return kv.Value;
-
-    return null;
-}
-
-// ─── Extract inline task title from input ─────────────────────────────
-private string ExtractInlineTask(string lower)
-{
-    string[] prefixes = { "add task ", "new task ", "create task ", "add a task ", "remind me to ", "set a reminder to ", "set reminder to " };
-    foreach (var p in prefixes)
-    {
-        if (lower.Contains(p))
-        {
-            int idx = lower.IndexOf(p) + p.Length;
-            string title = lower.Substring(idx).Trim();
-            if (!string.IsNullOrEmpty(title))
-                return char.ToUpper(title[0]) + title.Substring(1);
-        }
-    }
-    return null;
-}
-// Method for Quiz questions and answers functionality
-private void InitialiseQuizQuestions()
+        // Method for Quiz questions and answers functionality
+        private void InitialiseQuizQuestions()
         {
             quizQuestions = new List<QuizQuestion>
             {
@@ -531,11 +530,11 @@ private void InitialiseQuizQuestions()
         }
         private void StartQuiz()
         {
-            inQuiz           = true;
-            quizIndex        = 0;
-            quizScore        = 0;
+            inQuiz = true;
+            quizIndex = 0;
+            quizScore = 0;
             awaitingQuizAnswer = false;
- 
+
             // Shuffle questions
             for (int i = quizQuestions.Count - 1; i > 0; i--)
             {
@@ -544,13 +543,13 @@ private void InitialiseQuizQuestions()
                 quizQuestions[i] = quizQuestions[j];
                 quizQuestions[j] = tmp;
             }
- 
+
             LogActivity("Quiz started.");
             AppendSection("Cybersecurity Quiz");
             AppendBot($"Let's test your cybersecurity knowledge, {userName}! There are {quizQuestions.Count} questions.\nType your answer (A/B/C/D or True/False) and press Enter.\n");
             ShowQuizQuestion();
         }
- 
+
         private void ShowQuizQuestion()
         {
             if (quizIndex >= quizQuestions.Count)
@@ -558,10 +557,10 @@ private void InitialiseQuizQuestions()
                 EndQuiz();
                 return;
             }
- 
+
             var q = quizQuestions[quizIndex];
             string text = $"Q{quizIndex + 1}/{quizQuestions.Count}: {q.Question}\n";
- 
+
             if (q.IsTrueFalse)
                 text += "Answer True or False.";
             else
@@ -570,23 +569,23 @@ private void InitialiseQuizQuestions()
                     text += opt + "\n";
                 text += "Enter A, B, C, or D.";
             }
- 
+
             AppendBot(text);
             awaitingQuizAnswer = true;
         }
- 
+
         private void HandleQuizAnswer(string raw)
         {
             awaitingQuizAnswer = false;
-            var q      = quizQuestions[quizIndex];
+            var q = quizQuestions[quizIndex];
             string ans = raw.Trim().ToUpper();
- 
+
             // normalise True/False answers
-            if (ans == "TRUE" || ans == "T")  ans = "True";
+            if (ans == "TRUE" || ans == "T") ans = "True";
             if (ans == "FALSE" || ans == "F") ans = "False";
- 
+
             bool correct = ans.Equals(q.Answer, StringComparison.OrdinalIgnoreCase);
- 
+
             if (correct)
             {
                 quizScore++;
@@ -596,29 +595,29 @@ private void InitialiseQuizQuestions()
             {
                 AppendColoured($"Incorrect. The answer was: {q.Answer}\n{q.Explanation}", Color.FromArgb(255, 100, 100));
             }
- 
+
             quizIndex++;
             Thread.Sleep(300);
             ShowQuizQuestion();
         }
- 
+
         private void EndQuiz()
         {
             inQuiz = false;
             int pct = (int)((quizScore / (double)quizQuestions.Count) * 100);
- 
+
             string grade;
-            if      (pct >= 90) grade = "Outstanding! You're a cybersecurity pro!";
+            if (pct >= 90) grade = "Outstanding! You're a cybersecurity pro!";
             else if (pct >= 70) grade = "Great job! You know your stuff.";
             else if (pct >= 50) grade = "Not bad, but keep learning to stay safe online!";
-            else                grade = "Keep learning to stay safe online!";
- 
+            else grade = "Keep learning to stay safe online!";
+
             string result = $"Quiz complete! Your score: {quizScore}/{quizQuestions.Count} ({pct}%)\n{grade}";
             AppendColoured(result, Color.FromArgb(255, 220, 50));
             LogActivity($"Quiz completed — score {quizScore}/{quizQuestions.Count} ({pct}%).");
         }
-//MySQL Database
-  private void EnsureDatabaseExists()
+        //MySQL Database
+        private void EnsureDatabaseExists()
         {
             try
             {
@@ -642,7 +641,7 @@ private void InitialiseQuizQuestions()
                 AppendError($"DB Error (setup): {ex.Message}");
             }
         }
- 
+
         private void SaveTaskToDb(string title, string desc, string reminder)
         {
             try
@@ -660,7 +659,7 @@ private void InitialiseQuizQuestions()
             }
             catch (Exception ex) { AppendError($"DB Error (save): {ex.Message}"); }
         }
- 
+
         private string GetTasksFromDb()
         {
             try
@@ -670,18 +669,18 @@ private void InitialiseQuizQuestions()
                     conn.Open();
                     string sql = "SELECT id, title, reminder, completed FROM tasks ORDER BY id DESC LIMIT 20";
                     var reader = new MySqlCommand(sql, conn).ExecuteReader();
-                    var lines  = new System.Text.StringBuilder();
+                    var lines = new System.Text.StringBuilder();
                     lines.AppendLine($"📋 Your cybersecurity tasks, {userName}:");
                     bool any = false;
                     while (reader.Read())
                     {
                         any = true;
-                        int    id        = reader.GetInt32(0);
-                        string title     = reader.GetString(1);
-                        string reminder  = reader.IsDBNull(2) ? "" : reader.GetString(2);
-                        bool   completed = reader.GetBoolean(3);
-                        string status    = completed ? "✅ Done" : "🔲 Pending";
-                        string rem       = string.IsNullOrEmpty(reminder) ? "" : $" | ⏰ {reminder}";
+                        int id = reader.GetInt32(0);
+                        string title = reader.GetString(1);
+                        string reminder = reader.IsDBNull(2) ? "" : reader.GetString(2);
+                        bool completed = reader.GetBoolean(3);
+                        string status = completed ? "✅ Done" : "🔲 Pending";
+                        string rem = string.IsNullOrEmpty(reminder) ? "" : $" | ⏰ {reminder}";
                         lines.AppendLine($"[{id}] {title}{rem} — {status}");
                     }
                     if (!any) lines.AppendLine("No tasks found. Type 'add task' to create one!");
@@ -690,7 +689,7 @@ private void InitialiseQuizQuestions()
             }
             catch (Exception ex) { return $"DB Error (read): {ex.Message}"; }
         }
- 
+
         private string DeleteTaskFromDb(int id)
         {
             try
@@ -708,7 +707,7 @@ private void InitialiseQuizQuestions()
             }
             catch (Exception ex) { return $"DB Error (delete): {ex.Message}"; }
         }
- 
+
         private string MarkTaskComplete(int id)
         {
             try
@@ -740,7 +739,7 @@ private void InitialiseQuizQuestions()
         {
             if (activityLog.Count == 0)
                 return $"No actions logged yet, {userName}. Interact with the bot to generate activity!";
- 
+
             var sb = new System.Text.StringBuilder();
             sb.AppendLine($"Recent activity log for {userName}:");
             int num = 1;
@@ -748,10 +747,10 @@ private void InitialiseQuizQuestions()
                 sb.AppendLine($"{num++}. {entry}");
             return sb.ToString();
         }
- 
-        
+
+
         //UI HELPERS 
-        
+
         private bool IsValidName(string name)
         {
             if (string.IsNullOrWhiteSpace(name)) return false;
@@ -759,18 +758,18 @@ private void InitialiseQuizQuestions()
                 if (!char.IsLetter(c)) return false;
             return true;
         }
- 
+
         private void TypeResponse(string message)
         {
             if (message == null) return; // quiz handles its own output
- 
-            isTyping         = true;
-            btnSend.Enabled  = false;
+
+            isTyping = true;
+            btnSend.Enabled = false;
             txtInput.Enabled = false;
- 
+
             // Log the response topic if detectable
             LogActivity($"Bot responded to user input.");
- 
+
             var thread = new Thread(() =>
             {
                 rtbChat.Invoke((Action)(() =>
@@ -779,10 +778,10 @@ private void InitialiseQuizQuestions()
                     rtbChat.AppendText("[CyberBot]: ");
                     rtbChat.Select(s, 12);
                     rtbChat.SelectionColor = Color.FromArgb(0, 200, 150);
-                    rtbChat.SelectionFont  = new Font("Consolas", 10F, FontStyle.Bold);
+                    rtbChat.SelectionFont = new Font("Consolas", 10F, FontStyle.Bold);
                     rtbChat.SelectionLength = 0;
                 }));
- 
+
                 foreach (char c in message)
                 {
                     char ch = c;
@@ -792,29 +791,29 @@ private void InitialiseQuizQuestions()
                         rtbChat.AppendText(ch.ToString());
                         rtbChat.Select(pos, 1);
                         rtbChat.SelectionColor = Color.FromArgb(200, 220, 255);
-                        rtbChat.SelectionFont  = new Font("Consolas", 10F);
-                        rtbChat.SelectionStart  = rtbChat.TextLength;
+                        rtbChat.SelectionFont = new Font("Consolas", 10F);
+                        rtbChat.SelectionStart = rtbChat.TextLength;
                         rtbChat.SelectionLength = 0;
                     }));
- 
+
                     Thread.Sleep(c == '.' || c == '!' || c == '?' ? 150 : 20);
                 }
- 
+
                 rtbChat.Invoke((Action)(() =>
                 {
                     rtbChat.AppendText("\n\n");
                     rtbChat.ScrollToCaret();
-                    isTyping         = false;
-                    btnSend.Enabled  = true;
+                    isTyping = false;
+                    btnSend.Enabled = true;
                     txtInput.Enabled = true;
                     txtInput.Focus();
                 }));
             });
- 
+
             thread.IsBackground = true;
             thread.Start();
         }
- 
+
         private void ShowAsciiLogo()
         {
             string logo = @"
@@ -843,10 +842,10 @@ private void InitialiseQuizQuestions()
             rtbChat.AppendText(logo + "\n");
             rtbChat.Select(start, logo.Length);
             rtbChat.SelectionColor = Color.FromArgb(0, 210, 210);
-            rtbChat.SelectionFont  = new Font("Consolas", 9F, FontStyle.Bold);
+            rtbChat.SelectionFont = new Font("Consolas", 9F, FontStyle.Bold);
             rtbChat.ScrollToCaret();
         }
- 
+
         private void AppendSection(string title)
         {
             int start = rtbChat.TextLength;
@@ -854,9 +853,9 @@ private void InitialiseQuizQuestions()
             rtbChat.AppendText(text);
             rtbChat.Select(start, text.Length);
             rtbChat.SelectionColor = Color.FromArgb(220, 100, 255);
-            rtbChat.SelectionFont  = new Font("Consolas", 11F, FontStyle.Bold);
+            rtbChat.SelectionFont = new Font("Consolas", 11F, FontStyle.Bold);
         }
- 
+
         private void AppendDivider()
         {
             int start = rtbChat.TextLength;
@@ -865,23 +864,23 @@ private void InitialiseQuizQuestions()
             rtbChat.Select(start, line.Length);
             rtbChat.SelectionColor = Color.FromArgb(80, 80, 80);
         }
- 
+
         private void AppendBot(string message)
         {
             int s = rtbChat.TextLength;
             rtbChat.AppendText("[CyberBot]: ");
             rtbChat.Select(s, 12);
             rtbChat.SelectionColor = Color.FromArgb(0, 200, 150);
-            rtbChat.SelectionFont  = new Font("Consolas", 10F, FontStyle.Bold);
- 
+            rtbChat.SelectionFont = new Font("Consolas", 10F, FontStyle.Bold);
+
             int ms = rtbChat.TextLength;
             rtbChat.AppendText(message + "\n\n");
             rtbChat.Select(ms, message.Length);
             rtbChat.SelectionColor = Color.FromArgb(200, 220, 255);
-            rtbChat.SelectionFont  = new Font("Consolas", 10F);
+            rtbChat.SelectionFont = new Font("Consolas", 10F);
             rtbChat.ScrollToCaret();
         }
- 
+
         private void AppendUser(string message)
         {
             string label = string.IsNullOrEmpty(userName) ? "[You]: " : $"[{userName}]: ";
@@ -889,34 +888,34 @@ private void InitialiseQuizQuestions()
             rtbChat.AppendText(label);
             rtbChat.Select(s, label.Length);
             rtbChat.SelectionColor = Color.FromArgb(100, 200, 100);
-            rtbChat.SelectionFont  = new Font("Consolas", 10F, FontStyle.Bold);
- 
+            rtbChat.SelectionFont = new Font("Consolas", 10F, FontStyle.Bold);
+
             int ms = rtbChat.TextLength;
             rtbChat.AppendText(message + "\n");
             rtbChat.Select(ms, message.Length);
             rtbChat.SelectionColor = Color.White;
-            rtbChat.SelectionFont  = new Font("Consolas", 10F);
+            rtbChat.SelectionFont = new Font("Consolas", 10F);
             rtbChat.ScrollToCaret();
         }
- 
+
         private void AppendError(string message)
         {
             int s = rtbChat.TextLength;
             rtbChat.AppendText(message + "\n\n");
             rtbChat.Select(s, message.Length);
             rtbChat.SelectionColor = Color.FromArgb(255, 80, 80);
-            rtbChat.SelectionFont  = new Font("Consolas", 10F);
+            rtbChat.SelectionFont = new Font("Consolas", 10F);
         }
- 
+
         private void AppendColoured(string message, Color color)
         {
             int s = rtbChat.TextLength;
             rtbChat.AppendText(message + "\n\n");
             rtbChat.Select(s, message.Length);
             rtbChat.SelectionColor = color;
-            rtbChat.SelectionFont  = new Font("Consolas", 10F, FontStyle.Bold);
+            rtbChat.SelectionFont = new Font("Consolas", 10F, FontStyle.Bold);
         }
- 
+
         private void PlayVoiceGreeting()
         {
             if (OperatingSystem.IsWindows())
@@ -924,14 +923,18 @@ private void InitialiseQuizQuestions()
                 try { new SoundPlayer("greeting.wav").Play(); } catch { }
             }
         }
- 
+
         private void btnClear_Click(object sender, EventArgs e)
         {
             rtbChat.Clear();
             ShowAsciiLogo();
             AppendBot($"Chat cleared! How can I help you, {userName}?");
         }
+        private void btnQuit_Click(object sender, EventArgs e)
+        {
+            AppendDivider();
+            AppendColoured($"Goodbye {userName}! Stay safe online. 👋", Color.FromArgb(255, 220, 50));
+            Application.Exit();
+        }
     }
 }
-
-
