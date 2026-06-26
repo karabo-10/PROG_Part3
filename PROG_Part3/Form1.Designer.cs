@@ -96,7 +96,7 @@
             Controls.Add(txtInput);
             Controls.Add(btnSend);
             Controls.Add(btnClear);
-            Text = "Form1";
+            Text = "CyberSecurity Awareness Bot";
         }
 
         #endregion
